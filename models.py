@@ -128,7 +128,7 @@ class Model:
 
         def print_model_loaded(mode, logdir):
             model_name = Model.get_model_name(logdir)
-            print('Model loaded. mode: {}, model_name: {}'.format(mode, model_name))
+            print(('Model loaded. mode: {}, model_name: {}'.format(mode, model_name)))
 
         if mode in ['train1', 'test1']:
             var_list = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, 'net/net1')
@@ -180,5 +180,5 @@ class Model:
     def all_model_names(logdir):
         import glob, os
         path = '{}/*.meta'.format(logdir)
-        model_names = map(lambda f: os.path.basename(f).replace('.meta', ''), glob.glob(path))
+        model_names = [os.path.basename(f).replace('.meta', '') for f in glob.glob(path)]
         return model_names

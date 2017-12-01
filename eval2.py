@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # /usr/bin/python2
 
-from __future__ import print_function
+
 
 import os
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3' 
@@ -50,7 +50,7 @@ def eval(logdir='logdir/default/train2', queue=True):
         coord.request_stop()
         coord.join(threads)
 
-        print("loss:", loss)
+        print(("loss:", loss))
 
 
 def summaries(loss):

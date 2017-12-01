@@ -51,7 +51,7 @@ def get_mfccs_and_phones(wav_file, sr, trim=False, random_crop=True,
 
     # Random crop
     if random_crop:
-        start = np.random.choice(range(np.maximum(1, len(mfccs) - length)), 1)[0]
+        start = np.random.choice(list(range(np.maximum(1, len(mfccs) - length))), 1)[0]
         end = start + length
         mfccs = mfccs[start:end]
         phns = phns[start:end]
@@ -256,11 +256,10 @@ def get_batch(mode, batch_size):
         target_wavs = sample(wav_files, batch_size)
 
         if mode in ('train1', 'test1'):
-            mfcc, ppg = map(_get_zero_padded, zip(*map(lambda w: get_mfccs_and_phones(w, hp_default.sr), target_wavs)))
+            mfcc, ppg = list(map(_get_zero_padded, list(zip(*[get_mfccs_and_phones(w, hp_default.sr) for w in target_wavs]))))
             return mfcc, ppg
         else:
-            mfcc, spec, mel = map(_get_zero_padded, zip(*map(
-                lambda wav_file: get_mfccs_and_spectrogram(wav_file, duration=hp_default.duration), target_wavs)))
+            mfcc, spec, mel = list(map(_get_zero_padded, list(zip(*[get_mfccs_and_spectrogram(wav_file, duration=hp_default.duration) for wav_file in target_wavs]))))
             return mfcc, spec, mel
 
 
@@ -269,6 +268,7 @@ def get_wav_batch(mode, batch_size):
     with tf.device('/cpu:0'):
         # Load data
         wav_files = load_data(mode=mode)
+
         wav_file = sample(wav_files, 1)[0]
         wav, _ = librosa.load(wav_file, sr=hp_default.sr)
 
@@ -279,9 +279,9 @@ def get_wav_batch(mode, batch_size):
         length = hp_default.sr * hp_default.duration
         batched = np.reshape(wav, (batch_size, length))
 
-        mfcc, spec, mel = map(_get_zero_padded, zip(
-            *map(lambda w: _get_mfcc_log_spec_and_log_mel_spec(w, hp_default.preemphasis, hp_default.n_fft,
-                                                               hp_default.win_length, hp_default.hop_length), batched)))
+        mfcc, spec, mel = list(map(_get_zero_padded, list(zip(
+            *[_get_mfcc_log_spec_and_log_mel_spec(w, hp_default.preemphasis, hp_default.n_fft,
+                                                               hp_default.win_length, hp_default.hop_length) for w in batched]))))
     return mfcc, spec, mel
 
 
@@ -377,7 +377,7 @@ def load_data(mode):
       `convert`: ARCTIC BDL waveform -> mfccs (inputs) -> PGGs -> spectrogram -> waveform (output)
     '''
     if mode == "train1":
-        wav_files = glob.glob(hp.Train1.data_path)
+        wav_files = glob.glob(str(hp.Train1.data_path))
     elif mode == "test1":
         wav_files = glob.glob(hp.Test1.data_path)
     elif mode == "train2":

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # /usr/bin/python2
 
-from __future__ import print_function
+
 import hparams as hp
 from hparams import logdir_path
 from tqdm import tqdm
@@ -56,7 +56,7 @@ def train(logdir='logdir/default/train1', queue=False):
         threads = tf.train.start_queue_runners(coord=coord)
 
         for epoch in range(1, hp.Train1.num_epochs + 1):
-            for step in tqdm(range(model.num_batch), total=model.num_batch, ncols=70, leave=False, unit='b'):
+            for step in tqdm(list(range(model.num_batch)), total=model.num_batch, ncols=70, leave=False, unit='b'):
                 if queue:
                     sess.run(train_op)
                 else:

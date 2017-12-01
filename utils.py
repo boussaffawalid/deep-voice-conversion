@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #/usr/bin/python2
 
-from __future__ import print_function
+
 
 import librosa
 import numpy as np
@@ -36,7 +36,7 @@ def wav_random_crop(wav, sr, duration):
 
     target_len = sr * duration
     wav_len = wav.shape[-1]
-    start = np.random.choice(range(np.maximum(1, wav_len - target_len)), 1)[0]
+    start = np.random.choice(list(range(np.maximum(1, wav_len - target_len))), 1)[0]
     end = start + target_len
     if wav.ndim == 1:
         wav = wav[start:end]

@@ -17,7 +17,7 @@ min_limit_len = sr  # 1s
 
 def split(wav, top_db):
     intervals = librosa.effects.split(wav, top_db=top_db)
-    wavs = map(lambda i: wav[i[0]: i[1]], intervals)
+    wavs = [wav[i[0]: i[1]] for i in intervals]
     return wavs
 
 
@@ -41,8 +41,8 @@ for filepath in glob.glob('{}/*.wav'.format(src_path)):
     # min_len = min(min_len, len(wav))
     # min_len_split = min(min_len_split, min(map(lambda w: len(w), split_wavs)))
 
-    split_wavs = filter(lambda w: len(w) >= min_limit_len, split_wavs)
-    map(lambda (i, w): write(w, sr, '{}/{}_{}.wav'.format(target_path, filename, i)), enumerate(split_wavs))
+    split_wavs = [w for w in split_wavs if len(w) >= min_limit_len]
+    list([write(i_w[1], sr, '{}/{}_{}.wav'.format(target_path, filename, i_w[0])) for i_w in enumerate(split_wavs)])
 
 
 # print('num_files: {}, num_files_split: {}'.format(num_files, num_files_split))
