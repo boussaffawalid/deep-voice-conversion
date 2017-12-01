@@ -3,6 +3,9 @@
 
 from __future__ import print_function
 
+import os
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3' 
+
 import tensorflow as tf
 from data_load import get_batch
 from models import Model

@@ -13,8 +13,10 @@ import convert, eval2
 from data_load import get_batch
 import argparse
 
+import os
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3' 
 
-def train(logdir1='logdir/default/train1', logdir2='logdir/default/train2', queue=True):
+def train(logdir1='logdir/default/train1', logdir2='logdir/default/train2', queue=False):
     model = Model(mode="train2", batch_size=hp.Train2.batch_size, queue=queue)
 
     # Loss
@@ -56,7 +58,10 @@ def train(logdir1='logdir/default/train1', logdir2='logdir/default/train2', queu
                     sess.run(train_op, feed_dict={model.x_mfcc: mfcc, model.y_spec: spec, model.y_mel: mel})
 
             # Write checkpoint files at every epoch
-            summ, gs = sess.run([summ_op, global_step])
+            if queue:
+                summ, gs = sess.run([summ_op, global_step])
+            else:
+                summ, gs = sess.run([summ_op, global_step], feed_dict={model.x_mfcc: mfcc, model.y_spec: spec, model.y_mel: mel})
 
             if epoch % hp.Train2.save_per_epoch == 0:
                 tf.train.Saver().save(sess, '{}/epoch_{}_step_{}'.format(logdir2, epoch, gs))

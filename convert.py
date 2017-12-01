@@ -2,9 +2,13 @@
 # /usr/bin/python2
 
 
-from __future__ import print_function
+
 
 import argparse
+
+
+import os
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3' 
 
 from data_load import get_wav_batch
 from models import Model
@@ -62,8 +66,8 @@ def convert(logdir='logdir/default/train2', queue=False):
         y_specs = np.power(y_specs, hp.Convert.emphasis_magnitude)
 
         # Spectrogram to waveform
-        audio = np.array(map(lambda spec: spectrogram2wav(spec.T, hp_default.n_fft, hp_default.win_length, hp_default.hop_length, hp_default.n_iter), pred_specs))
-        y_audio = np.array(map(lambda spec: spectrogram2wav(spec.T, hp_default.n_fft, hp_default.win_length, hp_default.hop_length, hp_default.n_iter), y_specs))
+        audio = np.array([spectrogram2wav(spec.T, hp_default.n_fft, hp_default.win_length, hp_default.hop_length, hp_default.n_iter) for spec in pred_specs])
+        y_audio = np.array([spectrogram2wav(spec.T, hp_default.n_fft, hp_default.win_length, hp_default.hop_length, hp_default.n_iter) for spec in y_specs])
 
         # Apply inverse pre-emphasis
         audio = inv_preemphasis(audio, coeff=hp_default.preemphasis)
