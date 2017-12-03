@@ -6,10 +6,6 @@
 data_path_base = './datasets'
 logdir_path = './logdir'
 
-## remote
-# data_path_base = '/data/private/vc/datasets'
-# logdir_path = '/data/private/vc/logdir'
-
 
 class Default:
     # signal processing
@@ -27,11 +23,6 @@ class Default:
     n_mels = 80
     duration = 2
 
-    # mean_log_spec = -4.25
-    # std_log_spec = 2.15
-    # min_log_spec = -21.25
-    # max_log_spec = 3.0
-
     # model
     hidden_units = 256  # alias = E
     num_banks = 16
@@ -46,7 +37,7 @@ class Default:
 
 class Train1:
     # path
-    data_path = '{}/timit/TIMIT/TRAIN/*/*/*.WAV'.format(data_path_base)
+    data_path = 'datasets/timit/TIMIT/TRAIN/*/*/*.WAV'
 
     # model
     hidden_units = 256  # alias = E
@@ -61,10 +52,11 @@ class Train1:
     lr = 0.0003
     num_epochs = 1000
     save_per_epoch = 2
+    
 
 class Test1:
     # path
-    data_path = '{}/timit/TIMIT/TEST/*/*/*.WAV'.format(data_path_base)
+    data_path = 'datasets/timit/TIMIT/TEST/*/*/*.WAV'
 
     # test
     batch_size = 32
@@ -72,8 +64,7 @@ class Test1:
     
 class Train2:
     # path
-    #data_path = '{}/kate/sense_and_sensibility_split/*.wav'.format(data_path_base)
-    data_path = '{}/arctic/slt/*.wav'.format(data_path_base)
+    data_path = 'datasets/arctic/slt/*.wav'
 
     # model
     hidden_units = 512  # alias = E
@@ -96,9 +87,6 @@ class Test2:
 
 
 class Convert:
-    # path
-    data_path = '{}/arctic/bdl/*.wav'.format(data_path_base)
-
     # convert
     batch_size = 2
     emphasis_magnitude = 1.2

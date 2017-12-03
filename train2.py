@@ -1,23 +1,23 @@
 # -*- coding: utf-8 -*-
-#/usr/bin/python2
+#/usr/bin/python3
 
 
-
-from hparams import logdir_path
-import hparams as hp
-from tqdm import tqdm
-
-import tensorflow as tf
-from models import Model
-import convert, eval2
-from data_load import get_batch
+import os, sys
 import argparse
 
-import os
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3' 
 
-def train(logdir1='logdir/default/train1', logdir2='logdir/default/train2', queue=False):
-    model = Model(mode="train2", batch_size=hp.Train2.batch_size, queue=queue)
+import tensorflow as tf
+
+from models import Model
+from data_load import get_batch
+import convert, eval2
+
+import hparams as hp
+
+
+def train(logdir1, logdir2, hparams):
+    model = Model(mode="train2", hparams=hparams)
 
     # Loss
     loss_op = model.loss_net2()
@@ -50,29 +50,23 @@ def train(logdir1='logdir/default/train1', logdir2='logdir/default/train2', queu
         threads = tf.train.start_queue_runners(coord=coord)
 
         for epoch in range(1, hp.Train2.num_epochs + 1):
-            for step in tqdm(list(range(model.num_batch)), total=model.num_batch, ncols=70, leave=False, unit='b'):
-                if queue:
-                    sess.run(train_op)
-                else:
-                    mfcc, spec, mel = get_batch(model.mode, model.batch_size)
-                    sess.run(train_op, feed_dict={model.x_mfcc: mfcc, model.y_spec: spec, model.y_mel: mel})
+            for step in list(range(model.num_batch)):
+                mfcc, spec, mel = get_batch(model.mode, model.batch_size)
+                sess.run(train_op, feed_dict={model.x_mfcc: mfcc, model.y_spec: spec, model.y_mel: mel})
 
             # Write checkpoint files at every epoch
-            if queue:
-                summ, gs = sess.run([summ_op, global_step])
-            else:
-                summ, gs = sess.run([summ_op, global_step], feed_dict={model.x_mfcc: mfcc, model.y_spec: spec, model.y_mel: mel})
+            summ, gs = sess.run([summ_op, global_step], feed_dict={model.x_mfcc: mfcc, model.y_spec: spec, model.y_mel: mel})
 
             if epoch % hp.Train2.save_per_epoch == 0:
                 tf.train.Saver().save(sess, '{}/epoch_{}_step_{}'.format(logdir2, epoch, gs))
 
                 # Eval at every n epochs
                 with tf.Graph().as_default():
-                    eval2.eval(logdir2, queue=False)
+                    eval2.eval(logdir2, hparams)
 
                 # Convert at every n epochs
                 with tf.Graph().as_default():
-                    convert.convert(logdir2, queue=False)
+                    convert.convert(logdir2, hparams)
 
             writer.add_summary(summ, global_step=gs)
 
@@ -90,15 +84,18 @@ def summaries(loss):
 
 def get_arguments():
     parser = argparse.ArgumentParser()
-    parser.add_argument('case1', type=str, help='experiment case name of train1')
-    parser.add_argument('case2', type=str, help='experiment case name of train2')
+    parser.add_argument('-case1', type=str, default='default' ,help='experiment case name of train1')
+    parser.add_argument('-case2', type=str, default='default' ,help='experiment case name of train2')
+    parser.add_argument('-logdir', type=str, default='./logdir' ,help='tensorflow logdir, default: ./logdir')
+
     arguments = parser.parse_args()
     return arguments
 
 if __name__ == '__main__':
     args = get_arguments()
-    case1, case2 = args.case1, args.case2
-    logdir1 = '{}/{}/train1'.format(logdir_path, case1)
-    logdir2 = '{}/{}/train2'.format(logdir_path, case2)
-    train(logdir1=logdir1, logdir2=logdir2)
+    logdir1 = '{}/{}/train1'.format(args.logdir, args.case1)
+    logdir2 = '{}/{}/train2'.format(args.logdir, args.case2)
+    
+    train(logdir1=logdir1, logdir2=logdir2, hparams=hp)
+    
     print("Done")

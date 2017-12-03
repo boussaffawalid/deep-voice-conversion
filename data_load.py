@@ -187,60 +187,6 @@ def get_mfccs_and_spectrogram_queue(wav_file):
     return mfccs, spec, mel
 
 
-def get_batch_queue(mode, batch_size):
-    '''Loads data and put them in mini batch queues.
-    mode: A string. Either `train1` | `test1` | `train2` | `test2` | `convert`.
-    '''
-
-    if mode not in ('train1', 'test1', 'train2', 'test2', 'convert'):
-        raise Exception("invalid mode={}".format(mode))
-
-    with tf.device('/cpu:0'):
-        # Load data
-        wav_files = load_data(mode=mode)
-
-        # calc total batch count
-        num_batch = len(wav_files) // batch_size
-
-        # Convert to tensor
-        wav_files = tf.convert_to_tensor(wav_files)
-
-        # Create Queues
-        wav_file, = tf.train.slice_input_producer([wav_files, ], shuffle=True, capacity=128)
-
-        if mode in ('train1', 'test1'):
-            # Get inputs and target
-            mfcc, ppg = get_mfccs_and_phones_queue(inputs=wav_file,
-                                                   dtypes=[tf.float32, tf.int32],
-                                                   capacity=2048,
-                                                   num_threads=32)
-
-            # create batch queues
-            mfcc, ppg = tf.train.batch([mfcc, ppg],
-                                       shapes=[(None, hp_default.n_mfcc), (None,)],
-                                       num_threads=32,
-                                       batch_size=batch_size,
-                                       capacity=batch_size * 32,
-                                       dynamic_pad=True)
-            return mfcc, ppg, num_batch
-        else:
-            # Get inputs and target
-            mfcc, spec, mel = get_mfccs_and_spectrogram_queue(inputs=wav_file,
-                                                              dtypes=[tf.float32, tf.float32, tf.float32],
-                                                              capacity=2048,
-                                                              num_threads=64)
-
-            # create batch queues
-            mfcc, spec, mel = tf.train.batch([mfcc, spec, mel],
-                                             shapes=[(None, hp_default.n_mfcc), (None, 1 + hp_default.n_fft // 2),
-                                                     (None, hp_default.n_mels)],
-                                             num_threads=64,
-                                             batch_size=batch_size,
-                                             capacity=batch_size * 64,
-                                             dynamic_pad=True)
-            return mfcc, spec, mel, num_batch
-
-
 def get_batch(mode, batch_size):
     '''Loads data.
     mode: A string. Either `train1` | `test1` | `train2` | `test2` | `convert`.
@@ -270,6 +216,7 @@ def get_wav_batch(mode, batch_size):
         wav_files = load_data(mode=mode)
 
         wav_file = sample(wav_files, 1)[0]
+
         wav, _ = librosa.load(wav_file, sr=hp_default.sr)
 
         total_duration = hp_default.duration * batch_size
@@ -284,6 +231,23 @@ def get_wav_batch(mode, batch_size):
                                                                hp_default.win_length, hp_default.hop_length) for w in batched]))))
     return mfcc, spec, mel
 
+
+def get_wav(wav_file, batch_size):
+    with tf.device('/cpu:0'):
+        # Load data        
+        wav, _ = librosa.load(wav_file, sr=hp_default.sr)
+
+        total_duration = hp_default.duration * batch_size
+        total_len = hp_default.sr * total_duration
+        wav = librosa.util.fix_length(wav, total_len)
+
+        length = hp_default.sr * hp_default.duration
+        batched = np.reshape(wav, (batch_size, length))
+
+        mfcc, spec, mel = list(map(_get_zero_padded, list(zip(
+            *[_get_mfcc_log_spec_and_log_mel_spec(w, hp_default.preemphasis, hp_default.n_fft,
+                                                               hp_default.win_length, hp_default.hop_length) for w in batched]))))
+    return mfcc, spec, mel
 
 class _FuncQueueRunner(tf.train.QueueRunner):
     def __init__(self, func, queue=None, enqueue_ops=None, close_op=None,

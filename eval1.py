@@ -11,13 +11,12 @@ import argparse
 import tensorflow as tf
 import hparams as hp
 from data_load import get_batch
-from hparams import logdir_path
 from models import Model
 
 
-def eval(logdir='logdir/default/train1', queue=False):
+def eval(logdir, hparams):
     # Load graph
-    model = Model(mode="test1", batch_size=hp.Test1.batch_size, queue=queue)
+    model = Model(mode="test1", hparams=hparams)
 
     # Accuracy
     acc_op = model.acc_net1()
@@ -42,11 +41,8 @@ def eval(logdir='logdir/default/train1', queue=False):
         sess.run(tf.global_variables_initializer())
         model.load(sess, 'train1', logdir=logdir)
 
-        if queue:
-            summ, acc, loss = sess.run([summ_op, acc_op, loss_op])
-        else:
-            mfcc, ppg = get_batch(model.mode, model.batch_size)
-            summ, acc, loss = sess.run([summ_op, acc_op, loss_op], feed_dict={model.x_mfcc: mfcc, model.y_ppgs: ppg})
+        mfcc, ppg = get_batch(model.mode, model.batch_size)
+        summ, acc, loss = sess.run([summ_op, acc_op, loss_op], feed_dict={model.x_mfcc: mfcc, model.y_ppgs: ppg})
 
         writer.add_summary(summ)
 
@@ -68,14 +64,16 @@ def summaries(acc, loss):
 
 def get_arguments():
     parser = argparse.ArgumentParser()
-    parser.add_argument('case', type=str, help='experiment case name')
+    parser.add_argument('-case', type=str, default='default' ,help='experiment case name')
+    parser.add_argument('-logdir', type=str, default='./logdir' ,help='tensorflow logdir, default: ./logdir')
     arguments = parser.parse_args()
     return arguments
 
 
 if __name__ == '__main__':
     args = get_arguments()
-    case = args.case
-    logdir = '{}/{}/train1'.format(logdir_path, case)
-    eval(logdir=logdir)
+    logdir = '{}/{}/train1'.format(args.logdir, args.case)
+    
+    eval(logdir, hp)
+
     print("Done")
