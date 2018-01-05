@@ -30,14 +30,18 @@ def convert(logdir, hparams, input_file, output_file):
     # Load graph
     model = Model(mode="convert", hparams=hparams)
 
-    session_conf = tf.ConfigProto(
-        allow_soft_placement=True,
-        device_count={'CPU': 1, 'GPU': 0},
-        gpu_options=tf.GPUOptions(
-            allow_growth=True,
-            per_process_gpu_memory_fraction=0.6
-        ),
-    )
+    #session_conf = tf.ConfigProto(
+    #    allow_soft_placement=True,
+    #    device_count={'CPU': 1, 'GPU': 0},
+    #    gpu_options=tf.GPUOptions(
+    #        allow_growth=True,
+    #        per_process_gpu_memory_fraction=0.6
+    #    ),
+    #)
+
+    session_conf=tf.ConfigProto()
+    session_conf.gpu_options.per_process_gpu_memory_fraction=0.9
+
 
     with tf.Session(config=session_conf) as sess:
         # Load trained model
