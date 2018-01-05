@@ -23,10 +23,14 @@ def eval(logdir, hparams):
     # Summary
     summ_op = summaries(loss_op)
 
-    session_conf = tf.ConfigProto(
-        allow_soft_placement=True,
-        device_count={'CPU': 1, 'GPU': 0},
-    )
+    #session_conf = tf.ConfigProto(
+    #    allow_soft_placement=True,
+    #    device_count={'CPU': 1, 'GPU': 0},
+    #)
+
+    session_conf=tf.ConfigProto()
+    session_conf.gpu_options.per_process_gpu_memory_fraction=0.9
+
     with tf.Session(config=session_conf) as sess:
         # Load trained model
         sess.run(tf.global_variables_initializer())

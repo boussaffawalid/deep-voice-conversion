@@ -41,11 +41,15 @@ def train(logdir, hparams):
     tf.summary.scalar('net1/train/acc', acc_op)
     summ_op = tf.summary.merge_all()
 
-    session_conf = tf.ConfigProto(
-        gpu_options=tf.GPUOptions(
-            allow_growth=True,
-        ),
-    )
+    #session_conf = tf.ConfigProto(
+    #    gpu_options=tf.GPUOptions(
+    #        allow_growth=True,
+    #    ),
+    #)
+
+    session_conf=tf.ConfigProto()
+    session_conf.gpu_options.per_process_gpu_memory_fraction=0.9
+
     # Training
     with tf.Session(config=session_conf) as sess:
         # Load trained model
@@ -103,11 +107,12 @@ if __name__ == '__main__':
     args = get_arguments()
     logdir = '{}/{}/train1'.format(args.logdir, args.case1)
 
-    #i[date hparamas
+    #update hparamas
     hp.Train1.batch_size = args.batch_size
     hp.Train1.lr = args.lr
     hp.Train1.num_epochs = args.num_epochs
     hp.Train1.save_per_epoch = args.save_per_epoch
+    hp.Train1.data_path = args.data_path
 
     train(logdir=logdir, hparams = hp)
     

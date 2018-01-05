@@ -33,12 +33,16 @@ def train(logdir1, logdir2, hparams):
     # Summary
     summ_op = summaries(loss_op)
 
-    session_conf = tf.ConfigProto(
-        gpu_options=tf.GPUOptions(
-            allow_growth=True,
-            per_process_gpu_memory_fraction=0.6,
-        ),
-    )
+    #session_conf = tf.ConfigProto(
+    #    gpu_options=tf.GPUOptions(
+    #        allow_growth=True,
+    #        per_process_gpu_memory_fraction=0.6,
+    #    ),
+    #)
+
+    session_conf=tf.ConfigProto()
+    session_conf.gpu_options.per_process_gpu_memory_fraction=0.9
+
     # Training
     with tf.Session(config=session_conf) as sess:
         # Load trained model
@@ -65,8 +69,8 @@ def train(logdir1, logdir2, hparams):
                     eval2.eval(logdir2, hparams)
 
                 # Convert at every n epochs
-                with tf.Graph().as_default():
-                    convert.convert(logdir2, hparams)
+                #with tf.Graph().as_default():
+                #    convert.convert(logdir2, hparams)
 
             writer.add_summary(summ, global_step=gs)
 
@@ -88,6 +92,18 @@ def get_arguments():
     parser.add_argument('-case2', type=str, default='default' ,help='experiment case name of train2')
     parser.add_argument('-logdir', type=str, default='./logdir' ,help='tensorflow logdir, default: ./logdir')
 
+    parser.add_argument('-data_path', type=str, default=hp.Train2.data_path,
+        help='trainign data path, default: {}'.format(hp.Train2.data_path) )
+
+    parser.add_argument('-batch_size', type=int, default=hp.Train2.batch_size,
+        help='batch size, default {}'.format(hp.Train2.batch_size))
+
+    parser.add_argument('-num_epochs', type=int, default=hp.Train2.num_epochs,
+        help='number of epochs, default: {}'.format(hp.Train2.num_epochs) )
+
+    parser.add_argument('-save_per_epoch', type=int, default=hp.Train2.save_per_epoch,
+        help='save model every n epoch, default: {}'.format(hp.Train2.save_per_epoch) )
+
     arguments = parser.parse_args()
     return arguments
 
@@ -96,6 +112,12 @@ if __name__ == '__main__':
     logdir1 = '{}/{}/train1'.format(args.logdir, args.case1)
     logdir2 = '{}/{}/train2'.format(args.logdir, args.case2)
     
+    hp.Train2.batch_size = args.batch_size
+    hp.Train2.num_epochs = args.num_epochs
+    hp.Train2.save_per_epoch = args.save_per_epoch
+    hp.Train2.data_path = args.data_path
+
+
     train(logdir1=logdir1, logdir2=logdir2, hparams=hp)
     
     print("Done")
