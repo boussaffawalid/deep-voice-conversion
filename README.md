@@ -33,6 +33,13 @@ The model architecture consists of two modules:
 We applied CBHG(1-D convolution bank + highway network + bidirectional GRU) modules that are mentioned in [Tacotron](https://arxiv.org/abs/1703.10135).
 CBHG is known to be good for capturing features from sequential data.
 
+### dataset
+data set can be downloaded from the link bellow
+
+* [Dataset](https://mega.nz/#!0o8H0L6A!YsRxy_i5hHoIXb-ctnVS3bI_1QPjsSXOFffVxN8duu4) .
+
+
+
 ### Net1 is a classifier.
 * Process: wav -> spectrogram -> mfccs -> phoneme dist.
 * Net1 classifies spectrogram to phonemes that consists of 60 English phonemes at every timestep.
@@ -56,7 +63,7 @@ Net2 contains Net1 as a sub-network.
 
 ## Implementations
 ### Requirements
-* python 2.7
+* python 3.5
 * tensorflow >= 1.1
 * numpy >= 1.11.1
 * librosa == 0.5.1
